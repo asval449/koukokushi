@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>皇国史</title>
+<style>
+:root{--bg:#fff;--bar:#d7efd9;--ink:#111;--line:#7fa383;--bd:#bcd9be;--card:#fff;--sub:#555;--blue:#1a56db;--ok:#2e8b4a;--ng:#c0392b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15201a;--bar:#243b2a;--ink:#eee;--line:#7da182;--bd:#3d5c43;--card:#1e2c23;--sub:#aab;--blue:#7aa7ff}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Noto Sans JP",sans-serif;display:flex;flex-direction:column;height:100%;font-size:15px}
+button,input,textarea{font:inherit;color:inherit}
+button{background:var(--bar);border:1px solid var(--bd);border-radius:8px;padding:6px 10px;cursor:pointer}
+button.on{background:#9bd3a1;color:#111;font-weight:700}
+input,textarea{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:6px 8px;width:100%}
+textarea{min-height:80px}
+h1{font-size:16px;margin:0;padding:8px 12px 2px;color:var(--ok)}
+#types{display:flex;background:var(--ok)}
+#types button{flex:1;border:0;border-radius:0;background:none;color:#fff;padding:9px 4px;font-weight:700}
+#types button.on{background:var(--bar);color:#111}
+#cats button.plus{position:sticky;right:0;background:var(--ok);color:#fff;font-weight:700;border-left:1px solid var(--bd)}
+.ev label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--sub)}
+.ev label.ck{flex-direction:row;align-items:center;color:var(--ink)}.ev label.ck input{width:auto}
+#cats{background:var(--bar);display:flex;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
+#cats button{border:0;border-radius:0;background:none;padding:10px 14px;flex:none}
+#cats button.on{background:var(--bg);border-bottom:3px solid var(--ok)}
+.row{display:flex;gap:6px;padding:6px 8px;align-items:center;flex-wrap:wrap}
+.sm button{padding:3px 8px;font-size:13px}
+#main{flex:1;min-height:0;display:flex;flex-direction:column}
+#wrap{flex:1;overflow:auto;border-top:1px solid var(--bd);background:var(--bg)}
+.cv{position:relative;transform-origin:0 0;background-image:radial-gradient(var(--bd) 1px,transparent 1px);background-size:24px 24px}
+.cv svg{position:absolute;left:0;top:0;pointer-events:none}
+.card{position:absolute;background:var(--card);border:1.5px solid var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px;touch-action:none;user-select:none;overflow:hidden;font-size:14px;line-height:1.3;word-break:break-all}
+.card.sel{border-color:var(--ok);box-shadow:0 0 0 3px #9bd3a1aa}
+.card.mask{background:#fff3b0;color:#111;font-weight:700;font-size:20px}
+.rs{position:absolute;right:0;bottom:0;width:16px;height:16px;background:linear-gradient(135deg,transparent 50%,var(--line) 50%)}
+.imp{color:var(--blue);text-decoration:underline}
+#act{display:flex;gap:6px;padding:6px 8px;background:var(--bar);overflow-x:auto}
+#act button{flex:none;background:var(--bg)}
+.tl{padding:8px;overflow:auto;flex:1}
+.tl.h .ev-list{display:flex;gap:8px;align-items:flex-start}
+.ev{border:1px solid var(--bd);border-radius:8px;padding:8px;margin:6px 0;background:var(--card);cursor:pointer}
+.tl.h .ev{min-width:130px;margin:0}
+.ev b.y{color:var(--ok);display:block}
+#m{position:fixed;inset:0;background:#0006;display:flex;align-items:flex-end;justify-content:center;z-index:50}
+#m[hidden]{display:none}
+.mb{background:var(--bg);width:100%;max-width:520px;max-height:90%;overflow:auto;border-radius:14px 14px 0 0;padding:14px;display:flex;flex-direction:column;gap:8px}
+.mb h3{margin:0}.mb label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--sub)}
+.mb label.ck{flex-direction:row;align-items:center;color:var(--ink)}.mb label.ck input{width:auto}
+.del{background:#fde3df;border-color:#e6a199;color:#8a1c10}
+.q{padding:10px;overflow:auto;flex:1}
+.q .opt{display:block;width:100%;margin:6px 0;padding:12px;text-align:left;background:var(--card)}
+.q .opt.ok{background:#bfe8c6;color:#111}.q .opt.ng{background:#f6c8c2;color:#111}
+.qt{white-space:pre-wrap;font-weight:700;margin:6px 0}
+.note{color:var(--sub);font-size:13px;padding:6px 0}
+</style></head><body>
+<h1>皇国史</h1>
+<div id="types"></div>
+<div id="cats"></div>
+<div class="row sm" id="cm"></div>
+<div class="row" id="vt"></div>
+<div id="main"></div>
+<div id="m" hidden></div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9);
+let S,ci=0,ty='org',focus=null,view='main',z=1,sel=null,linkFrom=null,tl='v',Q=null,sc=[0,0];
+function seed(){
+ const K=(id,t,x,y,imp)=>({id,t,x,y,w:100,h:44,imp:!!imp,ex:'',memo:''});
+ return {cats:[
+  {id:'c1',type:'org',name:'律令制度',cards:[K('a','天皇',300,20,1),K('b','太政官',300,110,1),K('c','神祇官',120,110),K('d','左大臣',130,200),K('e','右大臣',300,200),K('f','大納言',470,200)],
+   links:[{a:'a',b:'b'},{a:'a',b:'c'},{a:'b',b:'d'},{a:'b',b:'e'},{a:'b',b:'f'}],events:[]},
+  {id:'c2',type:'tl',name:'日本史年表',cards:[],links:[],events:[{id:'e1',y:'645',t:'大化の改新',imp:true,ex:'中大兄皇子・中臣鎌足が蘇我氏を倒す',memo:''},{id:'e2',y:'710',t:'平城京遷都',imp:false,ex:'',memo:''},{id:'e3',y:'794',t:'平安京遷都',imp:true,ex:'桓武天皇',memo:''},{id:'e4',y:'1192',t:'源頼朝が征夷大将軍となる',imp:true,ex:'',memo:''}]}
+ ]}}
+function load(){try{return JSON.parse(localStorage.getItem('kokokushi'))}catch(e){return null}}
+function save(){try{localStorage.setItem('kokokushi',JSON.stringify(S))}catch(e){}}
+S=load()||seed();
+const cat=()=>S.cats[ci];
+const firstOf=t=>S.cats.findIndex(c=>c.type===t);
+function migrate(){S.cats.forEach(c=>{c.cards=c.cards||[];c.links=c.links||[];c.events=c.events||[];if(!c.type)c.type=(c.events.length&&!c.cards.length)||/年表/.test(c.name)?'tl':'org'})}
+migrate();ci=firstOf(ty);
+const fmt=k=>`<span class="${k.imp?'imp':''}">${esc(k.t)}</span>`;
+function modal(h){const m=$('#m');m.innerHTML='<div class="mb">'+h+'</div>';m.hidden=false}
+function closeM(){$('#m').hidden=true;render()}
+function ask(title,val,cb){modal(`<h3>${title}</h3><input id="ai" value="${esc(val)}"><div class="row"><button id="ok">OK</button><button onclick="closeM()">キャンセル</button></div>`);
+ $('#ok').onclick=()=>{const v=$('#ai').value.trim();if(v){cb(v);save();closeM()}}}
+function render(){
+ $('#types').innerHTML=[['org','組織図'],['tree','系図'],['tl','年表']].map(([k,n])=>`<button class="${ty===k?'on':''}" data-t="${k}">${n}</button>`).join('');
+ $('#types').querySelectorAll('button').forEach(b=>b.onclick=()=>{ty=b.dataset.t;ci=firstOf(ty);sel=linkFrom=null;Q=null;focus=null;render()});
+ $('#cats').innerHTML=S.cats.map((c,i)=>c.type===ty?`<button class="${i===ci?'on':''}" data-i="${i}">${esc(c.name)}</button>`:'').join('')+'<button id="cp" class="plus">＋</button>';
+ $('#cats').querySelectorAll('button[data-i]').forEach(b=>b.onclick=()=>{ci=+b.dataset.i;sel=linkFrom=null;Q=null;render()});
+ $('#cp').onclick=()=>ask('カテゴリー名','',v=>{S.cats.push({id:uid(),type:ty,name:v,cards:[],links:[],events:[]});ci=S.cats.length-1;view='main'});
+ $('#cm').innerHTML=(ci>=0?'<button id="cr">名前変更</button><button id="cl">◀</button><button id="cx">▶</button><button id="cd" class="del">カテゴリー削除</button>':'')+'<button id="bk">バックアップ</button>';
+ if(ci>=0){
+ $('#cr').onclick=()=>ask('名前変更',cat().name,v=>cat().name=v);
+ const mv=d=>{const ix=S.cats.map((c,i)=>c.type===ty?i:-1).filter(i=>i>=0),j=ix[ix.indexOf(ci)+d];if(j==null)return;[S.cats[ci],S.cats[j]]=[S.cats[j],S.cats[ci]];ci=j;save();render()};
+ $('#cl').onclick=()=>mv(-1);$('#cx').onclick=()=>mv(1);
+ $('#cd').onclick=e=>{if(e.target.dataset.s){S.cats.splice(ci,1);ci=firstOf(ty);save();render()}else{e.target.dataset.s=1;e.target.textContent='本当に削除'}};
+ }
+ $('#bk').onclick=()=>{modal(`<h3>バックアップ</h3><div class="note">下の文字列を保存しておけば復元できます。貼り付けて「読込」で復元。</div><textarea id="bt" style="min-height:160px">${esc(JSON.stringify(S))}</textarea><div class="row"><button id="rd">読込</button><button onclick="closeM()">閉じる</button></div>`);
+  $('#rd').onclick=()=>{try{const d=JSON.parse($('#bt').value);if(d&&d.cats&&d.cats.length){S=d;migrate();ci=firstOf(ty);save();closeM()}}catch(e){$('#bt').value='読み込めませんでした'}}};
+ $('#vt').innerHTML=ci<0?'':[['main',ty==='tl'?'年表':'図'],['notes','解説・メモ'],['quiz','問題']].map(([k,n])=>`<button class="${view===k?'on':''}" data-v="${k}">${n}</button>`).join('');
+ $('#vt').querySelectorAll('button').forEach(b=>b.onclick=()=>{view=b.dataset.v;Q=null;focus=null;render()});
+ if(ci<0){$('#main').innerHTML='<div class="q"><div class="note">バー右端の「＋」でカテゴリーを追加してください。</div></div>';return}
+ if(view==='main')(ty==='tl'?tlView:chartView)();else if(view==='notes')notesView();else quizView();
+ const w=$('#wrap');if(w){w.scrollLeft=sc[0];w.scrollTop=sc[1];w.onscroll=()=>sc=[w.scrollLeft,w.scrollTop]}
+}
+/* ---- 図 ---- */
+function chartView(){
+ $('#main').innerHTML=`<div class="row"><input id="nt" placeholder="単語・名称" style="flex:1;min-width:120px"><button id="na">カード追加</button></div><div class="row sm"><button id="lay">自動整列</button><button id="zo">－</button><button id="zi">＋</button><span class="note" id="zv"></span></div><div id="wrap"></div><div id="act"></div>`;
+ $('#na').onclick=()=>{const t=$('#nt').value.trim();if(!t)return;const w=$('#wrap');cat().cards.push({id:uid(),t,x:Math.round(w.scrollLeft/z+20),y:Math.round(w.scrollTop/z+20),w:100,h:44,imp:false,ex:'',memo:''});save();$('#nt').value='';sel=cat().cards.at(-1).id;chartRefresh()};
+ $('#lay').onclick=layout;
+ $('#zo').onclick=()=>{z=Math.max(.4,z-.15);chartRefresh()};$('#zi').onclick=()=>{z=Math.min(2,z+.15);chartRefresh()};
+ chartRefresh();
+}
+function chartRefresh(){
+ $('#zv').textContent=Math.round(z*100)+'%';
+ draw($('#wrap'),cat(),{});
+ const k=cat().cards.find(x=>x.id===sel),a=$('#act');
+ if(!k){a.innerHTML='<span class="note">カードをタップして選択</span>';return}
+ a.innerHTML=`<button id="a1">解説・メモ</button><button id="a2" class="${linkFrom?'on':''}">${linkFrom?'つなぐ先をタップ':'線をつなぐ'}</button><button id="a3">重要語句 ${k.imp?'解除':'設定'}</button><button id="a4">複製</button><button id="a5" class="del">削除</button>`;
+ $('#a1').onclick=()=>openNotes(k.id);
+ $('#a2').onclick=()=>{linkFrom=linkFrom?null:k.id;chartRefresh()};
+ $('#a3').onclick=()=>{k.imp=!k.imp;save();chartRefresh()};
+ $('#a4').onclick=()=>{const n=Object.assign({},k,{id:uid(),x:k.x+20,y:k.y+20});cat().cards.push(n);sel=n.id;save();chartRefresh()};
+ $('#a5').onclick=e=>{if(e.target.dataset.s){delCard(k.id)}else{e.target.dataset.s=1;e.target.textContent='本当に削除'}};
+}
+function delCard(id){const c=cat();c.cards=c.cards.filter(x=>x.id!==id);c.links=c.links.filter(l=>l.a!==id&&l.b!==id);sel=null;save();chartRefresh()}
+function layout(){
+ const c=cat(),inc=new Set(c.links.map(l=>l.b)),dep={},ord=[];
+ const q=c.cards.filter(k=>!inc.has(k.id));q.forEach(k=>{dep[k.id]=0;ord.push(k)});
+ for(let i=0;i<q.length;i++){c.links.filter(l=>l.a===q[i].id).forEach(l=>{const n=c.cards.find(x=>x.id===l.b);if(n&&dep[n.id]==null){dep[n.id]=dep[q[i].id]+1;q.push(n);ord.push(n)}})}
+ c.cards.forEach(k=>{if(dep[k.id]==null){dep[k.id]=0;ord.push(k)}});
+ const cnt={};ord.forEach(k=>{const d=dep[k.id];cnt[d]=cnt[d]||0;k.x=20+cnt[d]*(k.w+24);k.y=20+d*(k.h+50);cnt[d]++});
+ save();chartRefresh();
+}
+function draw(el,c,o){
+ const W=Math.max(o.ro?300:900,...c.cards.map(k=>k.x+k.w+60)),H=Math.max(o.ro?200:700,...c.cards.map(k=>k.y+k.h+60));
+ const zz=o.z||z;
+ el.innerHTML=`<div style="width:${W*zz}px;height:${H*zz}px"><div class="cv" style="width:${W}px;height:${H}px;transform:scale(${zz})"><svg width="${W}" height="${H}"></svg></div></div>`;
+ const cv=el.querySelector('.cv');
+ c.cards.forEach(k=>{const d=document.createElement('div');const m=k.id===o.mask;d.className='card'+(k.id===sel&&!o.ro?' sel':'')+(m?' mask':'');d.dataset.id=k.id;
+  d.style.cssText=`left:${k.x}px;top:${k.y}px;width:${k.w}px;height:${k.h}px`;d.innerHTML=m?'？':fmt(k)+(o.ro?'':'<i class="rs"></i>');cv.appendChild(d)});
+ lines(el,c);
+ if(!o.ro)bind(el,c);
+}
+function lines(el,c){
+ const p=[];c.links.forEach(l=>{const a=c.cards.find(x=>x.id===l.a),b=c.cards.find(x=>x.id===l.b);if(!a||!b)return;
+  let d;
+  if(b.y>a.y+a.h/2){const x1=a.x+a.w/2,y1=a.y+a.h,x2=b.x+b.w/2,y2=b.y,m=(y1+y2)/2;d=`M${x1} ${y1}V${m}H${x2}V${y2}`}
+  else if(b.x>a.x){const y1=a.y+a.h/2,y2=b.y+b.h/2,m=(a.x+a.w+b.x)/2;d=`M${a.x+a.w} ${y1}H${m}V${y2}H${b.x}`}
+  else{const y1=a.y+a.h/2,y2=b.y+b.h/2,m=(b.x+b.w+a.x)/2;d=`M${a.x} ${y1}H${m}V${y2}H${b.x+b.w}`}
+  p.push(`<path d="${d}" fill="none" stroke="var(--line)" stroke-width="2"/>`)});
+ el.querySelector('svg').innerHTML=p.join('');
+}
+function bind(el,c){
+ el.querySelectorAll('.card').forEach(d=>{
+  d.onpointerdown=e=>{
+   const k=c.cards.find(x=>x.id===d.dataset.id),rs=e.target.classList.contains('rs');
+   const sx=e.clientX,sy=e.clientY,ox=k.x,oy=k.y,ow=k.w,oh=k.h;let moved=false;
+   d.setPointerCapture(e.pointerId);
+   d.onpointermove=ev=>{const dx=(ev.clientX-sx)/z,dy=(ev.clientY-sy)/z;if(Math.abs(dx)+Math.abs(dy)>3)moved=true;if(!moved)return;
+    if(rs){k.w=Math.max(60,ow+dx);k.h=Math.max(36,oh+dy)}else{k.x=Math.max(0,ox+dx);k.y=Math.max(0,oy+dy)}
+    d.style.left=k.x+'px';d.style.top=k.y+'px';d.style.width=k.w+'px';d.style.height=k.h+'px';lines(el,c)};
+   d.onpointerup=()=>{d.onpointermove=d.onpointerup=null;if(moved){save();chartRefresh()}else tap(k)};
+  }})
+}
+function tap(k){
+ if(linkFrom&&linkFrom!==k.id){const c=cat(),i=c.links.findIndex(l=>l.a===linkFrom&&l.b===k.id);if(i>=0)c.links.splice(i,1);else c.links.push({a:linkFrom,b:k.id});linkFrom=null;save();sel=k.id}
+ else if(sel===k.id&&!linkFrom)return openNotes(k.id);
+ else{sel=k.id;linkFrom=null}
+ chartRefresh();
+}
+function detail(o,list,isCard){
+ const ev=o.y!==undefined;
+ modal(`<h3>詳細</h3>${ev?`<label>年（西暦）<input id="f_y" value="${esc(o.y)}"></label>`:''}<label>名称<input id="f_t" value="${esc(o.t)}"></label><label class="ck"><input type="checkbox" id="f_i" ${o.imp?'checked':''}>重要語句（青字＋下線）</label><label>解説<textarea id="f_e">${esc(o.ex)}</textarea></label><label>メモ（覚えにくい点・注意点）<textarea id="f_m">${esc(o.memo)}</textarea></label><div class="row"><button id="f_d" class="del">削除</button><button onclick="closeM()">閉じる</button></div>`);
+ const b=(id,fn)=>{const e=$('#'+id);if(e)e.oninput=()=>{fn(e);save()}};
+ b('f_y',e=>o.y=e.value);b('f_t',e=>o.t=e.value);b('f_i',e=>o.imp=e.checked);b('f_e',e=>o.ex=e.value);b('f_m',e=>o.memo=e.value);
+ $('#f_d').onclick=e=>{if(!e.target.dataset.s){e.target.dataset.s=1;e.target.textContent='本当に削除';return}
+  const i=list.indexOf(o);if(i>=0)list.splice(i,1);if(isCard){const c=cat();c.links=c.links.filter(l=>l.a!==o.id&&l.b!==o.id);sel=null}save();closeM()};
+}
+/* ---- 年表 ---- */
+function tlView(){
+ const c=cat();
+ $('#main').innerHTML=`<div class="row"><input id="ty" placeholder="年" style="width:80px"><input id="tt" placeholder="出来事" style="flex:1;min-width:120px"><button id="ta">追加</button></div><div class="row sm"><button id="tv" class="${tl==='v'?'on':''}">縦型</button><button id="th" class="${tl==='h'?'on':''}">横型</button></div><div class="tl ${tl}"><div class="ev-list"></div></div>`;
+ $('#ta').onclick=()=>{const y=$('#ty').value.trim(),t=$('#tt').value.trim();if(!y||!t)return;c.events.push({id:uid(),y,t,imp:false,ex:'',memo:''});save();tlView()};
+ $('#tv').onclick=()=>{tl='v';tlView()};$('#th').onclick=()=>{tl='h';tlView()};
+ const ys=e=>parseInt(String(e.y).replace(/[^\d-]/g,''))||0;
+ const L=$('.ev-list');
+ [...c.events].sort((a,b)=>ys(a)-ys(b)).forEach(e=>{const d=document.createElement('div');d.className='ev';d.innerHTML=`<b class="y">${esc(e.y)}年</b>${fmt(e)}`;d.onclick=()=>openNotes(e.id);L.appendChild(d)});
+ if(!c.events.length)L.innerHTML='<div class="note">出来事を追加してください</div>';
+}
+/* ---- 問題 ---- */
+const shuf=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
+function mkQ(){
+ const c=cat(),qs=[];
+ const pool=(arr,v)=>[...new Set(arr)].filter(x=>x&&x!==v);
+ c.cards.forEach(k=>{
+  const other=pool(c.cards.map(x=>x.t),k.t);
+  if(c.links.some(l=>l.a===k.id||l.b===k.id))qs.push({w:k.imp?3:1,type:'chart',k,item:k,ans:k.t,pool:other,q:'図の「？」に入る語はどれ？'});
+  else if(k.ex)qs.push({w:k.imp?3:1,type:'text',item:k,ans:k.t,pool:other,q:'解説：'+k.ex+'\n→ 当てはまる語は？'})});
+ c.events.forEach(e=>{
+  if(Math.random()<.5)qs.push({w:e.imp?3:1,item:e,ans:e.t,pool:pool(c.events.map(x=>x.t),e.t),q:`「${e.y}年」の出来事は？`});
+  else qs.push({w:e.imp?3:1,item:e,ans:String(e.y),pool:pool(c.events.map(x=>String(x.y)),String(e.y)),q:`「${e.t}」が起きた年は？`})});
+ return qs.filter(q=>q.pool.length).map(q=>[-Math.log(Math.random())/q.w,q]).sort((a,b)=>a[0]-b[0]).slice(0,10).map(x=>x[1]);
+}
+function quizView(){
+ if(!Q){const list=mkQ();
+  $('#main').innerHTML=list.length?`<div class="q"><div class="qt">「${esc(cat().name)}」から${list.length}問出題します（重要語句を優先）。</div><button id="qs">開始</button></div>`:'<div class="q"><div class="note">出題できる登録語句が足りません。カード（線でつなぐ）や年表を2件以上登録してください。</div></div>';
+  if(list.length)$('#qs').onclick=()=>{Q={list,i:0,s:0};quizView()};return}
+ if(Q.i>=Q.list.length){$('#main').innerHTML=`<div class="q"><div class="qt">結果：${Q.s} / ${Q.list.length}</div><button id="qr">もう一度</button></div>`;$('#qr').onclick=()=>{Q=null;quizView()};return}
+ const q=Q.list[Q.i],opts=shuf([q.ans,...shuf(q.pool).slice(0,3)]);
+ $('#main').innerHTML=`<div class="q"><div class="note">${Q.i+1} / ${Q.list.length}</div><div class="qt">${esc(q.q)}</div>${q.type==='chart'?'<div id="wrap" style="max-height:42vh;border:1px solid var(--bd);border-radius:8px"></div>':''}<div id="op"></div><div id="rs"></div></div>`;
+ if(q.type==='chart'){const w=Math.max(0,innerWidth-24),c=cat(),W=Math.max(300,...c.cards.map(k=>k.x+k.w+60));draw($('#wrap'),c,{ro:1,mask:q.k.id,z:Math.min(1,w/W)})}
+ opts.forEach(o=>{const b=document.createElement('button');b.className='opt';b.textContent=o;b.onclick=()=>{
+  if($('#op').dataset.d)return;$('#op').dataset.d=1;const ok=o===q.ans;if(ok)Q.s++;
+  [...$('#op').children].forEach(x=>{if(x.textContent===q.ans)x.classList.add('ok')});if(!ok)b.classList.add('ng');
+  const it=q.item;$('#rs').innerHTML=`<div class="qt">${ok?'○ 正解':'× 不正解　正解：'+esc(q.ans)}</div>${it.ex?`<div class="note">解説：${esc(it.ex)}</div>`:''}${it.memo?`<div class="note">メモ：${esc(it.memo)}</div>`:''}<button id="nx">${Q.i+1>=Q.list.length?'結果へ':'次へ'}</button>`;
+  $('#nx').onclick=()=>{Q.i++;quizView()}};$('#op').appendChild(b)});
+}
+function openNotes(id){focus=id;view='notes';Q=null;render()}
+function notesView(){
+ const c=cat(),isT=c.type==='tl',L=isT?c.events:c.cards;
+ $('#main').innerHTML=`<div class="row"><input id="nn" placeholder="${isT?'出来事':'単語・名称'}" style="flex:1;min-width:120px">${isT?'<input id="ny" placeholder="年" style="width:80px">':''}</div><div class="row"><textarea id="ne" placeholder="解説（任意）" style="min-height:56px"></textarea></div><div class="row"><textarea id="nm" placeholder="メモ（任意）" style="min-height:56px"></textarea></div><div class="row"><button id="nr">登録</button></div><div class="tl" id="nl"></div>`;
+ $('#nr').onclick=()=>{const t=$('#nn').value.trim();if(!t)return;const ex=$('#ne').value,memo=$('#nm').value;let o;
+  if(isT){const y=$('#ny').value.trim();if(!y)return;o={id:uid(),y,t,imp:false,ex,memo};c.events.push(o)}
+  else{const n=c.cards.length;o={id:uid(),t,x:20+(n%4)*124,y:20+Math.floor(n/4)*70,w:100,h:44,imp:false,ex,memo};c.cards.push(o)}
+  focus=o.id;save();notesView()};
+ const ys=e=>parseInt(String(e.y).replace(/[^\d-]/g,''))||0;
+ const items=isT?[...L].sort((a,b)=>ys(a)-ys(b)):L,nl=$('#nl');
+ const sum=o=>(isT?'<b class="y" style="display:inline">'+esc(o.y)+'年</b> ':'')+fmt(o);
+ items.forEach(o=>{const d=document.createElement('details');d.className='ev';d.open=o.id===focus;
+  d.innerHTML=`<summary>${sum(o)}</summary><div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">${isT?`<label>年<input data-f="y" value="${esc(o.y)}"></label>`:''}<label>名称<input data-f="t" value="${esc(o.t)}"></label><label class="ck"><input type="checkbox" data-f="imp" ${o.imp?'checked':''}>重要語句（青字＋下線）</label><label>解説<textarea data-f="ex">${esc(o.ex)}</textarea></label><label>メモ（覚えにくい点・注意点）<textarea data-f="memo">${esc(o.memo)}</textarea></label><button class="del">削除</button></div>`;
+  d.querySelectorAll('[data-f]').forEach(e=>e.oninput=()=>{o[e.dataset.f]=e.type==='checkbox'?e.checked:e.value;save();d.querySelector('summary').innerHTML=sum(o)});
+  d.querySelector('.del').onclick=e=>{if(!e.target.dataset.s){e.target.dataset.s=1;e.target.textContent='本当に削除';return}
+   const i=L.indexOf(o);if(i>=0)L.splice(i,1);if(!isT)c.links=c.links.filter(l=>l.a!==o.id&&l.b!==o.id);sel=null;save();notesView()};
+  nl.appendChild(d)});
+ if(!items.length)nl.innerHTML='<div class="note">まだ登録がありません。上のフォームから登録してください。</div>';
+ const fo=nl.querySelector('details[open]');if(focus&&fo)fo.scrollIntoView({block:'nearest'});focus=null;
+}
+render();
+</script></body></html>
